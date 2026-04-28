@@ -1,11 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
-// Thymos Machine Learning Core (c) 2023-2026 by Zachary R. James (@thymos)
+// Thymos Context (c) 2023-2026 by Zachary R. James (@thymos)
 // Public API for Thymos types, context (memory allocator + execution policy), err, vTable for core model structs
 //////////////////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>
-#if ! defined(__THYMOS_ML_H__)
-#define __THYMOS_ML_H__
 
 // INCLUDES //
 #include <stddef.h>
@@ -13,36 +11,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-// TYPES - NOTE: decided to an updated setup (use fixed-size for portability)
-#if !defined(TH_VALUE_TYPE)
-  // If not, set our default to double
-  #define TH_VALUE_TYPE double
-#endif
-
-#if !defined(TH_INDEX_TYPE)
-  // If not, set our default to double
-  #define TH_INDEX_TYPE size_t
-#endif
-
-
-// notes on types: 
-// th_value_t: value
-// size_t: iterator values 
-// th_value_t*: most ptrs
-// void*: for external/user-def concepts
-
-typedef TH_VALUE_TYPE th_value_t;
-typedef TH_INDEX_TYPE th_index_t;
-
-// ERROR HANDLING //
-typedef enum
-{
-  ERR_SUCCESS,
-  ERR_MEMORY_ALLOCATION,
-  ERR_INVALID_PARAMETER
-} th_Error;
-
-void th_print_error(th_Error error);
 
 // CONTEXTS & POLICIES // 
 
@@ -55,6 +23,14 @@ void th_print_error(th_Error error);
 // 3 layers of ctx: 
 // 1. explicit server/model pass
 // 2. thread-local
+
+// to-do 
+//th_Allocator
+//th_ExecutionPolicy
+//th_Ctx
+//th_alloc
+//th_scratch
+//th_pfor
 
 
 // monitors the system state (leveraged by thymos, thymos_server, & hpx:: later)
@@ -178,4 +154,3 @@ typedef struct th_Model
 // you know there is optimization structs and such
 
 
-#endif // __THYMOS_ML_H__
