@@ -2,7 +2,7 @@
 // Thymos Context (c) 2023-2026 by Zachary R. James (@thymos)
 // Public API for Thymos types, context (memory allocator + execution policy), err, vTable for core model structs
 //////////////////////////////////////////////////////////////////////////////
-
+#pragma once
 #include <stdlib.h>
 
 // INCLUDES //
@@ -11,41 +11,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "prelude.h"
 
-// CONTEXTS & POLICIES // 
-
-// idea:: 
-// th_Allocator: memory space & lifetime
-// th_ExecutionPolicy: who runs and how 
-// th_Context := Allocator + ExecutionPolicy
-
-
-// 3 layers of ctx: 
-// 1. explicit server/model pass
-// 2. thread-local
-
-// to-do 
-//th_Allocator
-//th_ExecutionPolicy
-//th_Ctx
-//th_alloc
-//th_scratch
-//th_pfor
-
-
-// monitors the system state (leveraged by thymos, thymos_server, & hpx:: later)
-typedef struct 
-{
-
-} th_Resource; 
-
+typedef struct {} th_Resource;  // system state (not sure if i need this)
 
 typedef enum
 {
   TH_MEM_DEFAULT,     // std malloc/free
-  TH_MEM_ARENA        // bump allocator for fast, contiguous allocs
+  TH_MEM_ARENA        // bump allocator for fast, contiguous allocs, free is nop
 } th_MemoryMode;
-
 
 typedef struct
 {
@@ -61,27 +35,23 @@ typedef struct
     size_t used;
   } arena;
 
-} th_Allocator;
-
-
-// EXECUTION CONTEXT //
+} th_Allocator; // memory space + lifetime
 
 typedef enum
 { 
   TH_EXEC_DEFAULT, // normal, no parallelization 
-  // DO THESE LATER:
   TH_EXEC_CPU_PARALLEL, // cpu parallelization (normal single machine) 
-  //TH_EXEC_MPI, // distrubuted
-  //TH_EXEC_CUDA // cuda GPU parallelization
+  TH_EXEC_MPI, // distrubuted
+  TH_EXEC_CUDA // cuda GPU parallelization
 } th_ExecutionMode;
 
+
 typedef struct
-{
-  void (*th_pfor)(size_t start, size_t end, void (*fn)(size_t, void*), void* arg); // for loop
-} th_ExecutionPolicy;
+{ // all mpi,cuda, threadpools, &c need
+  void (*th_pfor)(size_t start, size_t end, void (*fn)(size_t, void*), void* arg);
+} th_ExecutionPolicy; // who runs & how
 
 
-// this is the context that is passed around and referenced for the program
 typedef struct
 {
   th_Allocator allocator;
@@ -102,6 +72,8 @@ th_Error th_ctx_destroy(th_Context* ctx);
 // th_MemoryMode enum defs // 
 th_Error th_ctx_set_memory_default(th_Context* ctx); // 
 th_Error th_ctx_set_memory_arena(th_Context* ctx, size_t capacity); // i guess max capacity is obvious
+th_Error th_ctx_arena_reset(th_Context* ctx); // resets arena (ie all sub-frees are freed) 
+
 // the alloc & free _fn are defined by the user (in a custom way, while the th_allocate and th_free are whatever is set and used generically thoughout the code)
 // th_MemoryMode enum defs // 
 
@@ -121,36 +93,3 @@ void* th_alloc(th_Context* ctx, size_t bytes);
 void th_free(th_Context* ctx, void* ptr);
 // in exectuion policy
 void th_pfor(th_Context* ctx, size_t start, size_t end, void (*fn)(size_t, void*), void* arg);
-
-
-// MODEL //
-
-typedef struct th_Model th_Model; // forward-declare
-
-// allows the quick structural definition of different ml models
-typedef struct 
-{
-  th_Error (*forward)();
-  th_Error (*backward)();
-  th_Error (*train)();
-  th_Error (*destroy)();
-  //th_Error (*save)();
-  //th_Error (*load)();
-  //th_Error (*build_graph); // to be thought of later
-} th_ModelVTable;
-
-// MODEL MUST STORE ctx*
-typedef struct th_Model
-{
-  const th_ModelVTable* vtable;
-  th_Context* ctx;
-  void* paramaters;
-  //th_Model** children; // array for composites (ex layers)
-  //size_t num_children;
-  //void* graph; // for building hypergraph later maybe
-} TH_Model;
-
-
-// you know there is optimization structs and such
-
-

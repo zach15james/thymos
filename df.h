@@ -76,6 +76,4 @@ th_Error th_train_test_split_dataframe(th_DataFrame data, th_DataFrame *X_train,
 th_Error th_train_test_split(th_DataFrame data_matrix, th_DataFrame *X_train_matrix, th_DataFrame *X_test_matrix, th_DataFrame *y_train_matrix, th_DataFrame *y_test_matrix, double test_size, int random_state);
 
 
-
-
 #endif // __THYMOS_DF_H__
