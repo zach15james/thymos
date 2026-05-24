@@ -1,15 +1,61 @@
+//////////////////////////////////////////////////////////////////////////////
+// Thymos Linear Regression (c) 2026 by Zachary R. James (@thymos)
+// Linear regression model
+// (implementaion of sublibrary for ml)
+// the purose of this is to showcase thymos primitives in action
+// later, I will have scikitlearn, c++ Eigen, &c tests to compare w/ these
+//////////////////////////////////////////////////////////////////////////////
 
 
-typedef enum 
+#ifdef TH_LR_H
+#define TH_LR_H
+
+
+#include <stdbool.h>
+#include <stddef.h>
+#include "../prelude.h" // th_Error
+#include "../ctx.h"     // th_Context
+#include "../tensor.h"  // th_Tensor
+#include "../la.h"      // BLAS-shaped primitives
+
+typedef enum
 {
-    SIMPLE,
-    MULTIPLE,
-    POLYNOMIAL,
-    ORDINARY_LEAST_SQUARES,
-    WEIGHTED_LEAST_SQUARES,
-    GENERALIZED_LEAST_SQUARES,
+    TH_LR_OLS = 0,
+    TH_LR_RIDGE = 1,
+    TH_LR_LASSO = 2,
+    TH_LR_ELASTIC_NET = 3
+} th_LRPenalty;
 
-} LinearRegressionType;
+typedef struct
+{
+    th_LRPenalty penalty;
+    double lambda;
+    double alpha;
+    bool fit_intercept;
+    double tol;
+    int max_iter;
+    const th_Tensor *sample_weights;
+} th_LRConfig;
+
+typedef struct
+{
+    th_Tensor *coefficients;
+    double intercept;
+    int n_features;
+    int n_iterations;
+    bool converged;
+} th_LRModel;
+
+typedef struct
+{ double r_squared, adj_r_squared, mse, rmse, mae, huber; } th_LRMetrics;
+
+th_LRConfig th_lr_default_config(void);
+th_Error th_lr_fit(th_Context *ctx, const th_Tensor *X, const th_Tensor *y, const th_LRConfig *cfg, th_LRModel *out);
+th_Error th_lr_predict(th_Context *ctx, const th_LRModel *m, const th_Tensor *X, th_Tensor *y_out);
+th_Error th_lr_metrics(th_Context *ctx, const th_LRModel *m, const th_Tensor *x, const th_Tensor *y, th_LRMetrics *out);
+void th_lr_free (th_Context *ctx, th_LRModel *m);
+
+#endif // TH_LR_H
 
 
 typedef enum

@@ -1,0 +1,54 @@
+CompGraph(Obj: data, stuff, Hom: coreops) inside Context(Memory, Policy)
+- Ob(C) = kind x dtype x shape x flags
+- Hom(C) = core ops (kernels)
+- monoidal/tensor product
+- sequential composition
+- I (identity)
+- symmetry
+
+
+
+
+
+
+
+
+
+
+
+OLD NOTES:
+notes on writing better C structs:
+- define sub-struct vars from highest-size to lowest-size
+
+
+
+convertion array of structs (AoS) ---> struct of arrays (SoA)
+ex:
+struct Node graph[1000]; becomes...
+
+struct Graph
+{
+  int* op_types;
+  int* left_children;
+  fload** tensor_data;
+};
+
+
+where we can have bit-level ops:
+- state flags: uint32_t flags;
+- tensor-weight quantization (later) 
+
+
+3-tier architecture:
+(i) specific implementation logic / things
+(ii) graph generation + ACT fusion
+(iii) kernels (that do actual work)
+
+
+we have the following:
+
+CompGraph(Obj: data, stuff, Hom: core-ops) inside a Context(Memory, Policy)
+
+parallelism ==> monoidal structure w/ tensor product
+
+Endofunctors/optimizer: CompGraph ---> CompGraph
